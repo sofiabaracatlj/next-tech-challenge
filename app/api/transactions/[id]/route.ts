@@ -4,7 +4,7 @@ import TransactionSchema from "../../../models/transactionSchema";
 
 export async function GET(request: Request, { params }: any) {
     await connectMongoDB();
-    const { id } = params;
+    const { id } = await params;
 
     try {
         const transactions = await TransactionSchema.find({ userId: id });
@@ -33,5 +33,23 @@ export async function DELETE(request: Request, { params }: any) {
         return NextResponse.json({ message: 'Transaction deleted successfully' });
     } catch (error) {
         return NextResponse.json({ message: 'Error deleting transaction' }, { status: 500 });
+    }
+}
+
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
+    const { id } = await params;
+    const updatedTransaction = await request.json();
+
+    try {
+        await connectMongoDB();
+        const transaction = await TransactionSchema.findByIdAndUpdate(id, updatedTransaction, { new: true });
+
+        if (!transaction) {
+            return NextResponse.json({ message: 'Transaction not found' }, { status: 404 });
+        }
+
+        return NextResponse.json({ message: 'Transaction updated successfully', transaction });
+    } catch (error) {
+        return NextResponse.json({ message: 'Error updating transaction' }, { status: 500 });
     }
 }

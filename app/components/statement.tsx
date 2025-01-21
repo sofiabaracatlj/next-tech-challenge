@@ -3,20 +3,26 @@ import { Transaction } from '../models/transaction';
 import { TrashIcon } from '@heroicons/react/16/solid';
 import { PencilIcon } from '@heroicons/react/24/solid';
 import { useState } from 'react';
+import EditTransactionDialog from './edit-transaction-dialog';
+import { on } from 'events';
+import UserDTO from '../models/userDTO';
 
 interface StatementProps {
     transactions: Transaction[];
     onEditList: () => void;
+    user: UserDTO;
 }
 
-export default function Statement({ transactions, onEditList }: StatementProps) {
+export default function Statement({ transactions, onEditList, user }: StatementProps) {
     const groupedTransactions = groupTransactionsByMonth(transactions);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
 
     function groupTransactionsByMonth(transactions: Transaction[]) {
         return transactions.reduce((acc, transaction) => {
-            const date = new Date(transaction.createdAt);
+            const date = new Date(transaction.date);
             const month = date.toLocaleString('default', { month: 'long', year: 'numeric' });
 
             if (!acc[month]) {
@@ -31,12 +37,10 @@ export default function Statement({ transactions, onEditList }: StatementProps) 
     function capitalizeFirstLetter(string: string) {
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
-
     const handleEdit = (transaction: Transaction) => {
-        // Implementar lógica de edição
-        toast.info(`Editar transação: ${transaction.description}`);
+        setTransactionToEdit(transaction);
+        setIsEditDialogOpen(true);
     };
-
     const handleDeleteClick = (transactionId: string) => {
         setTransactionToDelete(transactionId);
         setIsDeleteDialogOpen(true);
@@ -92,10 +96,15 @@ export default function Statement({ transactions, onEditList }: StatementProps) 
         setTransactionToDelete(null);
     };
 
+    const onEditSuccess = () => {
+        onEditList();
+        setIsEditDialogOpen(false);
+    }
+
     return (
-        <div className="bg-white p-4 min-w-60 rounded-lg shadow-md">
+        <div className="bg-white p-4  w-full h-full rounded-lg shadow-md">
             <div className='w-52 m-auto'>
-                <h1 className="text-2xl font-bold mb-4">Extrato</h1>
+                <h1 className="text-2xl font-bold mb-4 text-primary">Extrato</h1>
                 {Object.keys(groupedTransactions).map((month) => (
                     <div key={month} className="mb-4">
                         <h2 className="text-lg text-primary font-semibold my-6">{capitalizeFirstLetter(month)}</h2>
@@ -107,11 +116,11 @@ export default function Statement({ transactions, onEditList }: StatementProps) 
                                             <span>{transaction.description === 'deposit' ? 'Depósito' : 'Transferência'}</span>
                                             <span className='font-bold'>
                                                 {transaction.description === 'transfer' ? '-' : ''}
-                                                {transaction.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                                {transaction.amount?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                             </span>
                                         </div>
                                         <div className="flex justify-between">
-                                            {new Date(transaction.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                                            {new Date(transaction.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
                                         </div>
                                         <div className="flex space-x-2">
                                             <PencilIcon onClick={() => handleEdit(transaction)} className="size-10 text-primary">Editar</PencilIcon>
@@ -138,6 +147,14 @@ export default function Statement({ transactions, onEditList }: StatementProps) 
                         </div>
                     </div>
                 </div>
+            )}
+            {isEditDialogOpen && transactionToEdit && (
+                <EditTransactionDialog
+                    user={user}
+                    transactionProps={transactionToEdit}
+                    onEditSuccess={() => onEditSuccess()}
+                    onCancel={() => setIsEditDialogOpen(false)}
+                />
             )}
         </div>
     );

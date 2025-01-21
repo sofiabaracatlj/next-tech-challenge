@@ -30,3 +30,7 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.z-1000 {
+  z-index: 1000 !important;
+}

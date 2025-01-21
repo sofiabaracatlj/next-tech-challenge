@@ -24,7 +24,7 @@ export async function GET(request: Request, { params }: any) {
 
 export async function POST(request: Request, { params }: any) {
   await connectMongoDB();
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const objectId = new ObjectId(id);

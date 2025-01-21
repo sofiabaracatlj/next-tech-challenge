@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import Select from 'react-select';
 import { Transaction } from '../models/transaction';
 import Image from 'next/image';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 
 interface TransactionFormProps {
     initialTransaction?: Partial<Transaction> | null;
@@ -33,7 +36,8 @@ const customStyles = {
     }),
     option: (provided: any, state: any) => ({
         ...provided,
-        zIndex: 99,
+        position: 'relative',
+        zIndex: 49,
         backgroundColor: state.isSelected ? 'var(--primary)' : "var(--white)",
         color: state.isSelected ? 'var(--white)' : 'var(--primary)',
         '&:hover': {
@@ -43,9 +47,19 @@ const customStyles = {
     }),
 };
 
+const transactionTypeLabels: { [key: string]: string } = {
+    deposit: 'Depósito',
+    transfer: 'Transferência',
+};
+
 export default function TransactionForm({ initialTransaction, onSubmit }: TransactionFormProps) {
-    const [transactionType, setTransactionType] = useState<{ value: string; label: string }>(initialTransaction?.description ? { value: initialTransaction.description, label: initialTransaction.description } : { value: 'deposit', label: 'Depósito' });
+    const [transactionType, setTransactionType] = useState<{ value: string; label: string }>(
+        initialTransaction?.description
+            ? { value: initialTransaction.description, label: transactionTypeLabels[initialTransaction.description] }
+            : { value: 'deposit', label: 'Depósito' }
+    );
     const [amount, setAmount] = useState(initialTransaction?.amount ? initialTransaction.amount.toString() : '');
+    const [date, setDate] = useState(new Date());
 
     const handleTransactionTypeChange = (selectedOption: any) => {
         setTransactionType(selectedOption);
@@ -72,62 +86,71 @@ export default function TransactionForm({ initialTransaction, onSubmit }: Transa
         onSubmit({
             description: transactionType.value,
             amount: numericAmount,
+            date: date
         });
     };
 
     return (
         <form onSubmit={handleSubmit} className="w-full z-20">
-            <div className="relative bg-grey w-full m-h-[636px] flex-wrap flex justify-center content-start rounded-lg w-full sm:max-w-[38rem] sm:p-8 py-8 px-4">
-                <div className="absolute right-0 top-0 bg-checkered-pattern bg-right-top bg-no-repeat bg-contain h-1/2 w-1/2 z-10"></div>
-                <div className="absolute left-0 bottom-0 bg-checkered-pattern-bottom bg-left-bottom bg-no-repeat bg-contain h-1/2 w-1/2 z-10"></div>
 
+            <div className="realtive mt-8 w-full sm:w-80">
+                <label htmlFor="transactionType" className="block text-neutral-50 font-bold mb-2">Tipo de transação</label>
+                <Select
+                    id="transactionType"
+                    value={transactionType}
+                    onChange={handleTransactionTypeChange}
+                    options={transactionOptions}
+                    className=" z-40"
+                    styles={customStyles}
+                    classNamePrefix="react-select"
+                />
+            </div>
+            <div className="w-full  z-20">
+                <div className='flex flex-col sm:flex-row'>
 
-                <span className="text-neutral-50 font-bold text-2xl">Nova transação</span>
-                <div className="relative w-full mt-8 z-40">
-                    <label htmlFor="transactionType" className="block text-neutral-50 font-bold mb-2">Tipo de transação</label>
-                    <Select
-                        id="transactionType"
-                        value={transactionType}
-                        onChange={handleTransactionTypeChange}
-                        options={transactionOptions}
-                        className="w-full"
-                        styles={customStyles}
-                        classNamePrefix="react-select"
-                    />
-                </div>
-                <div className="w-full  z-20">
-                    <div className='flex flex-col sm:flex-row'>
+                    <div className='flex flex-col'>
 
-                        <div className='flex flex-col'>
+                        <label htmlFor="amount" className="mt-8 block text-neutral-50 font-bold mb-2 z-20">Valor
 
-                            <label htmlFor="amount" className="mt-8 block text-neutral-50 font-bold mb-2 z-20">Valor
+                            <input
+                                id="amount"
+                                name="amount"
+                                value={amount}
+                                onChange={handleAmountChange}
+                                defaultValue={"0,00"}
+                                placeholder="R$ 0,00"
+                                className="w-full p-2 rounded bg-white text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            />
+                        </label>
 
-                                <input
-                                    id="amount"
-                                    name="amount"
-                                    value={amount}
-                                    onChange={handleAmountChange}
-                                    defaultValue={"0,00"}
-                                    placeholder="R$ 0,00"
-                                    className="w-full p-2 rounded bg-white text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                />
-                            </label>
-                            <div className="w-full mt-8">
-                                <button type="submit" className="p-2 rounded-lg bg-primary text-white font-bold">Concluir</button>
-                            </div>
-                        </div>
-                        <Image
-                            className="block mt-8"
-                            src="/Ilustração2.png"
-                            width={283}
-                            height={228.17}
-                            alt="Picture of the author"
+                        <DatePicker
+                            className='w-full p-2 rounded bg-white text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent z-50'
+                            selected={date}
+                            locale="pt-BR"
+                            popperClassName="z-1000"
+                            dayClassName={() => 'z-50'}
+                            onChange={(date) => setDate(date as Date)}
+                            dateFormat="dd/MM/yyyy"
                         />
+                        <div className="w-full mt-8">
+                            <button type="submit" className="p-2 rounded-lg bg-primary text-white font-bold">Concluir</button>
+                        </div>
 
                     </div>
+                    {initialTransaction === null && <Image
+                        className="block mt-8"
+                        src="/Ilustração2.png"
+                        width={283}
+                        height={228.17}
+                        alt="Picture of the author"
+                    />}
+
 
                 </div>
+
             </div>
+
+
         </form>
     );
 }

@@ -10,6 +10,7 @@ import NewTransaction from "./components/new-transaction";
 import { ToastContainer } from "react-toastify";
 import { Transaction } from "./models/transaction";
 import Statement from "./components/statement";
+import { get } from "http";
 
 export default function Home() {
   const [client, setClient] = useState({} as UserDTO);
@@ -35,6 +36,11 @@ export default function Home() {
     const transactions: Transaction[] = await response.json();
     setTransactions(transactions);
   }
+
+  const updatedTransactions = async () => {
+    getTransactions(client._id);
+    getUserInfo();
+  }
   return (
     <div>
       <ToastContainer />
@@ -52,7 +58,10 @@ export default function Home() {
               </div>
               : null
           }
-          <Statement transactions={transactions} onEditList={() => getTransactions(client._id)} />
+          <div className="min-w-60">
+
+            <Statement user={client} transactions={transactions} onEditList={() => updatedTransactions()} />
+          </div>
         </div>
       </div>
     </div>

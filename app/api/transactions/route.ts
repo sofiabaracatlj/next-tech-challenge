@@ -12,8 +12,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   await connectMongoDB();
-  const { amount, description, userId } = await request.json();
+  const { amount, description, userId, date } = await request.json();
   const objectUserId = new mongoose.mongo.ObjectId(userId);
-  const newTransaction = await TransactionSchema.create({ amount, description, userId: objectUserId });
+  const newTransaction = await TransactionSchema.create({ amount, description, userId: objectUserId, date });
   return NextResponse.json(newTransaction);
 }

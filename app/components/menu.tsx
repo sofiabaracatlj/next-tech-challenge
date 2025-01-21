@@ -10,7 +10,7 @@ export default function Menu({ type }: MenuProps) {
 
     const menuItems = [
         { href: "/", label: "Início" },
-        { href: "/app/transactions", label: "Transferências" },
+        { href: "/all-transactions", label: "Transferências" },
         { href: "/app/investments", label: "Investimentos" },
         { href: "/app/services", label: "Outros Serviços" },
     ];
